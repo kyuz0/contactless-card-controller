@@ -169,10 +169,14 @@
                 setTimeout(function () {
                     self.loading = false;
                     self.done = true;
-                    self.undone.push(self.states.pop());
+                    const index = self.states.indexOf(self.toUndo);
+                    if (index > -1) {
+                        self.states.splice(index, 1);
+                    }
                     setTimeout(function () {
                         self.hideUndoModal();
                         self.done = false;
+                        self.showUndoButton = true;
                     }, 1500);
                 }, 1500);
 
