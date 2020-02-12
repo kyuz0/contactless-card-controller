@@ -172,6 +172,7 @@
                     self.undone.push(self.states.pop());
                     setTimeout(function () {
                         self.hideUndoModal();
+                        self.done = false;
                     }, 1500);
                 }, 1500);
 
