@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contactless Deck Controller</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <style>
+        .is-clickable {
+          cursor: pointer;
+        }
+        .header {
+            font-size: 2em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item">
+                <h1 class="header">Contactless Deck Controller</h1>
+            </a>
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <img class="is-pulled-right" src="contactless.png">
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section id="app" class="section">
+        <div class="container">
+
+            <div class="columns is-mobile is-centered">
+                <div class="column">
+                    <label for="file-input" class="button is-primary is-fullwidth">
+                        <span class="icon">
+                            <i class="fa fa-camera"></i>
+                        </span>
+                        <span>Take Picture</span>
+                    </label>
+                    <input class="is-hidden" type="file" accept="image/*" id="file-input">
+                </div>
+            </div>
+            <table class="table is-striped">
+                <tr v-for="state in states">
+                    <td><img class="is-clickable" v-on:click="showImageModal(state)" v-bind:src="state.url"></td>
+                    <td width="40%">
+                        <h5 class="title is-5">{{ state.title }}</h5>
+                        <h5 class="subtitle is-5">
+                            <span class="icon is-small">
+                                <i class="fas fa-clock"></i>
+                            </span>
+                            {{ state.time }}
+                            <br />
+                            <span class="icon is-small">
+                                <i class="fas fa-calendar"></i>
+                            </span>
+                            {{ state.date }}
+                        </h5>
+                        <button v-on:click="showUndoModal(state)" class="button is-primary is-fullwidth ">
+                            <span class="icon is-small">
+                                <i class="fas fa-undo"></i>
+                            </span>
+                            <span>Undo</span>
+                        </button><br />
+                        <button class="button is-primary is-fullwidth">
+                            <span class="icon is-small">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                            <span>Delete</span>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="undo-modal" class="modal">
+            <div class="modal-background"></div>
+            <div style="height:100%" class="modal-card">
+                <section class="modal-card-body">
+                    <div class="column is-centered">
+                        <div class="column has-text-centered">
+                            <div v-if="!loading && !done" class="title">Place your phone near the deck, then press
+                                Undo.
+                            </div>
+                            <img v-on:click="hideUndoModal()" v-if="done" width="100px" src="tick.png">
+                            <img v-if="loading" width="100px" src="loading.gif">
+                            <button v-if="showUndoButton" v-on:click="undo()" class="button is-success is-large">Undo</button>
+                        </div>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                    <button v-on:click="hideUndoModal()" class="button is-pulled-right">Cancel</button>
+                </footer>
+            </div>
+            <button v-on:click="hideUndoModal()" class="modal-close is-large" aria-label="close"></button>
+        </div>
+        <div id="image-modal" class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-content">
+                <p class="image">
+                    <img v-bind:src="currentImage" alt="">
+                </p>
+            </div>
+            <button v-on:click="hideImageModal()" class="modal-close is-large" aria-label="close"></button>
+        </div>
+    </section>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            states: [],
+            undone: [],
+            toDelete: null,
+            toUndo: null,
+            currentImage: null,
+            done: false,
+            loading: false,
+            showUndoButton: true,
+        },
+        mounted: function () {
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', (e) => this.addState(e.target.files));
+        },
+        computed: {
+        },
+        methods: {
+            addState: function (fileList) {
+                let file = null;
+                const reader = new FileReader();
+
+                for (let i = 0; i < fileList.length; i++) {
+                    if (fileList[i].type.match(/^image\//)) {
+                        file = fileList[i];
+                        break;
+                    }
+                }
+
+                if (file !== null) {
+                    const state = {
+                        title: "Test",
+                        time: this.getTime(),
+                        date: this.getDate(),
+                        img: null,
+                        url: URL.createObjectURL(file)
+                    }
+
+                    reader.addEventListener("load", function () {
+                        state.img = reader.result;
+                    }, false);
+                    reader.readAsDataURL(file);
+
+                    this.states.unshift(state);
+                }
+
+            },
+            undo: function () {
+                this.showUndoButton = false;
+                this.loading = true;
+                var self = this;
+
+                setTimeout(function () {
+                    self.loading = false;
+                    self.done = true;
+                    self.undone.push(self.states.pop());
+                    setTimeout(function () {
+                        self.hideUndoModal();
+                    }, 1500);
+                }, 1500);
+
+            },
+            getTime: function () {
+                var today = new Date();
+                var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                return time;
+            },
+            getDate: function () {
+                var today = new Date();
+                var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+                return date;
+            },
+            toggleModal: function (modal) {
+                var element = document.getElementById(modal);
+                element.classList.toggle("is-active");
+            },
+            showUndoModal: function (state) {
+                this.toggleModal("undo-modal");
+                this.toUndo = state;
+            },
+            hideUndoModal: function () {
+                this.toggleModal("undo-modal");
+                this.toUndo = null;
+            },
+            showDeleteModal: function (state) {
+                this.toggleModal("delete-modal");
+                this.toDelete = state;
+            },
+            hideDeleteModal: function () {
+                this.toggleModal("delete-modal");
+                this.toDelete = null;
+            },
+            showImageModal: function (state) {
+                this.toggleModal("image-modal");
+                this.currentImage = state.img;
+            },
+            hideImageModal: function () {
+                this.toggleModal("image-modal");
+                this.currentImage = null;
+            }
+        }
+
+    })
+</script>
+
+</html>
