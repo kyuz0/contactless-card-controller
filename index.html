@@ -200,19 +200,19 @@
             <div class="box box1">
                 <div class="wrapper">
                     <p class="label">Month</p>
-                    <p class="display">{{this.destinationTime.toLocaleString('default', { month: 'short' })}}</p>
+                    <p class="display">{{ this.destinationTimeMonth}}</p>
                 </div>
                 <div class="wrapper">
                     <p class="label">Day</p>
-                    <p class="display">{{this.padDigits(this.destinationTime.getDate(),2)}}</p>
+                    <p class="display">{{ destinationTimeDay}}</p>
                 </div>
                 <div class="wrapper">
                     <p class="label">Year</p>
-                    <p class="display">{{this.destinationTime.getFullYear()}}</p>
+                    <p class="display">{{destinationTimeYear}}</p>
                 </div>
                 <div class="wrapper padding">
                     <p class="label">Hour</p>
-                    <p class="display">{{this.padDigits(this.destinationTime.getHours(),2)}}</p>
+                    <p class="display">{{destinationTimeHour}}</p>
                 </div>
                 <div class="wrapper padding">
                     <p class="lit time"></p>
@@ -220,7 +220,7 @@
                 </div>
                 <div class="wrapper padding">
                     <p class="label">Min</p>
-                    <p class="display">{{this.padDigits(this.destinationTime.getMinutes(),2)}}</p>
+                    <p class="display">{{destinationTimeMinutes}}</p>
                 </div>
                 <div class="wrapper padding">
                     <p class="lit time"></p>
@@ -228,7 +228,7 @@
                 </div>
                 <div class="wrapper padding">
                     <p class="label">Sec</p>
-                    <p class="display">{{this.padDigits(this.destinationTime.getSeconds(),2)}}</p>
+                    <p class="display">{{destinationTimeSeconds}}</p>
                 </div>
                 <p class="large-label">Destination Time</p>
             </div>
@@ -311,13 +311,49 @@
         el: '#time-circuit-app',
         data: {
             presentTime: null,
-            destinationTime: new Date("1985", 9, 26, 1, 21, 0, 0),
+            destinationTime: null,
             showFluxCapacitor: false,
         },
         mounted: function () {
             this.init();
         },
         computed: {
+            destinationTimeMonth: function() {
+                if (this.destinationTime) {
+                    return this.destinationTime.toLocaleString('default', { month: 'short' })
+                }
+                return '---';
+            },
+            destinationTimeDay: function() {
+                if (this.destinationTime) {
+                    return this.padDigits(this.destinationTime.getDate(),2)
+                }
+                return '--';
+            },
+            destinationTimeYear: function() {
+                if (this.destinationTime) {
+                    return this.destinationTime.getFullYear()
+                }
+                return '----';
+            },
+            destinationTimeHour: function() {
+                if (this.destinationTime) {
+                    return this.padDigits(this.destinationTime.getHours(),2)
+                }
+                return '--';
+            },
+            destinationTimeMinutes: function() {
+                if (this.destinationTime) {
+                    return this.padDigits(this.destinationTime.getMinutes(),2)
+                }
+                return '--';
+            },
+            destinationTimeSeconds: function() {
+                if (this.destinationTime) {
+                    return this.padDigits(this.destinationTime.getSeconds(),2)
+                }
+                return '--';
+            },
         },
         methods: {
             init: function () {
